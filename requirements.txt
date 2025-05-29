@@ -1,0 +1,14 @@
+streamlit
+pandas
+folium
+streamlit-folium
+geopy
+scikit-learn
+fpdf
+tqdm
+toml
+requests
+matplotlib
+seaborn
+numpy
+datetime

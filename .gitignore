@@ -1,0 +1,18 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# IDE / Editor settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# ignore all CSVs except the one we version
+raw data/*.csv
+!raw data/real_zip_scores.csv

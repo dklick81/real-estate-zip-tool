@@ -1,0 +1,22 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Raw data files (you regenerate real_zip_scores.csv)
+raw data/
+*.csv
+
+# IDE / Editor settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# .ipynb files
+.ipynb_checkpoints/
+*.ipynb
