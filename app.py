@@ -57,6 +57,33 @@ crime = st.sidebar.slider("Low Crime (Higher = Safer)", 0, 100, 17, key='crime_r
 walk = st.sidebar.slider("Walkability", 0, 100, 16, key='walkability')
 commute = st.sidebar.slider("Commute Time", 0, 100, 16, key='commute_time')
 
+#help section
+with st.sidebar.expander("❓ Help", expanded=False):
+    st.markdown(
+        """
+        **Search Radius**  
+        Controls how far (in miles) from your center ZIP to include neighborhoods in the analysis.  
+        
+        **Ranking Weights**  
+        Slide the bars to adjust each metric’s importance; the final score is a weighted sum:
+        ```python
+        score = affordability*w1 + (1-tax)*w2 + school_quality*w3 + …
+        ```
+        
+        **Analysis Methods**  
+        - **Histogram**: Distribution of your chosen metric across the top ZIPs.  
+        - **Boxplot**: Quartiles, median, and outliers for that metric.  
+        - **Radar**: Multi-axis view comparing all metrics for one ZIP.  
+        
+        **Map Markers**  
+        Click a circle to see full metric breakdown and overall score. Red pin marks your center ZIP.  
+        
+        **Downloads**  
+        Use CSV/PDF buttons to export your filtered data or rankings for offline review.  
+        For more details, see our [GitHub Wiki](https://github.com/dklick81/real-estate-zip-tool/wiki).
+        """
+    )
+
 if st.sidebar.button("🚀 Run Full Analysis"):
     # Step 1
     user_row = df[df['zip_code'] == user_zip]
@@ -314,33 +341,8 @@ if st.session_state.step1 and st.session_state.step2:
                 ax.set_title(f"ZIP Code: {selected_zip}", y=1.1)
                 st.pyplot(fig)
 
-#Sidebar help and reset
+#reset
 st.sidebar.markdown("---")
-with st.sidebar.expander("❓ Help", expanded=False):
-    st.markdown(
-        """
-        **Search Radius**  
-        Controls how far (in miles) from your center ZIP to include neighborhoods in the analysis.  
-        
-        **Ranking Weights**  
-        Slide the bars to adjust each metric’s importance; the final score is a weighted sum:
-        ```python
-        score = affordability*w1 + (1-tax)*w2 + school_quality*w3 + …
-        ```
-        
-        **Analysis Methods**  
-        - **Histogram**: Distribution of your chosen metric across the top ZIPs.  
-        - **Boxplot**: Quartiles, median, and outliers for that metric.  
-        - **Radar**: Multi-axis view comparing all metrics for one ZIP.  
-        
-        **Map Markers**  
-        Click a circle to see full metric breakdown and overall score. Red pin marks your center ZIP.  
-        
-        **Downloads**  
-        Use CSV/PDF buttons to export your filtered data or rankings for offline review.  
-        For more details, see our [GitHub Wiki](https://github.com/dklick81/real-estate-zip-tool/wiki).
-        """
-    )
 st.sidebar.subheader("🔄 Reset Analysis")
 if st.sidebar.button("Reset Pipeline"):
     for step in ['step1', 'step2', 'step3']:
