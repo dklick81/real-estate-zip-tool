@@ -12,10 +12,12 @@ from streamlit_folium import st_folium
 from geopy.distance import geodesic
 from sklearn.preprocessing import MinMaxScaler
 import re
+from pathlib import Path
 
 @st.cache_data
 def load_data():
-    return pd.read_csv('C:/Users/Dan/Documents/capstone/raw data/real_zip_scores.csv', dtype={"zip_code": str})
+    data_path = Path(__file__).parent / "raw data" / "real_zip_scores.csv"
+    return pd.read_csv(data_path, dtype={"zip_code": str})
 
 # Load data and initialize session state
 df = load_data()
