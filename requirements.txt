@@ -13,4 +13,3 @@ seaborn
 numpy
 datetime
 boto3
-os
