@@ -19,13 +19,10 @@ from io import StringIO
 
 @st.cache_data
 def load_data():
-    bucket = os.environ["housing-data-staging"]
-    key = "real_zip_scores.csv"
-    s3 = boto3.client("s3")
-    obj = s3.get_object(Bucket=bucket, Key=key)
-    body = obj["Body"].read().decode("utf-8")
-    df = pd.read_csv(StringIO(body), dtype={"zip_code": str})
-    return df
+    aws = st.secrets["aws"]
+    s3 = boto3.client("s3", aws_access_key_id=aws["aws_access_key_id"], aws_secret_access_key=aws["aws_secret_access_key"])
+    obj = s3.get_object(Bucket=aws["staging_bucket"], Key="real_zip_scores.csv")
+    return pd.read_csv(io.BytesIO(obj["Body"].read()), dtype={"zip_code": str})
 
 # Load data and initialize session state
 df = load_data()
