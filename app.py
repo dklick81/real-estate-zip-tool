@@ -13,11 +13,19 @@ from geopy.distance import geodesic
 from sklearn.preprocessing import MinMaxScaler
 import re
 from pathlib import Path
+import os
+import boto3
+from io import StringIO
 
 @st.cache_data
 def load_data():
-    data_path = Path(__file__).parent / "raw data" / "real_zip_scores.csv"
-    return pd.read_csv(data_path, dtype={"zip_code": str})
+    bucket = os.environ["housing-data-staging"]
+    key = "real_zip_scores.csv"
+    s3 = boto3.client("s3")
+    obj = s3.get_object(Bucket=bucket, Key=key)
+    body = obj["Body"].read().decode("utf-8")
+    df = pd.read_csv(StringIO(body), dtype={"zip_code": str})
+    return df
 
 # Load data and initialize session state
 df = load_data()
