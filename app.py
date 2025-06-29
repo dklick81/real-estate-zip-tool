@@ -5,6 +5,7 @@ import folium
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import io
 from fpdf import FPDF
 from io import BytesIO
 import datetime
