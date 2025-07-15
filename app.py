@@ -352,14 +352,17 @@ if st.session_state.step1 and st.session_state.step2:
                         f"Commute: {round(row['commute_time'], 2)}"
                     )
 
-                    folium.GeoJson(
-                        feature,
-                        style_function=lambda f: {
+                    def make_style(zip_code):
+                        return lambda f: {
                             "fillColor": zip_color_map.get(zip_code, "#d3d3d3"),
                             "color": "black",
                             "weight": 0.5,
                             "fillOpacity": 0.6
-                        },
+                        }
+
+                    folium.GeoJson(
+                        feature,
+                        style_function=make_style(zip_code),
                         highlight_function=lambda f: {
                             "weight": 2,
                             "color": "orange",
@@ -368,6 +371,7 @@ if st.session_state.step1 and st.session_state.step2:
                         tooltip=folium.Tooltip(f"ZIP: {zip_code}"),
                         popup=folium.Popup(popup_html, max_width=350)
                     ).add_to(m)
+
 
             st_folium(m, width=350, height=350)
 
