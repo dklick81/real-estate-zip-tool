@@ -313,38 +313,33 @@ if st.session_state.step1 and st.session_state.step2:
             #Mapping ZIP code polygons with popup info
 
             top_zips_sorted = df.sort_values("score", ascending=False)
-            top_5_zips = top_zips_sorted.head(5)["zip_code"].tolist()
-            bottom_5_zips = top_zips_sorted.tail(5)["zip_code"].tolist()
+            top_10_zips = top_zips_sorted.head(10)["zip_code"].tolist()
+            zip_rank_map = {zip_code: rank for rank, zip_code in enumerate(top_10_zips)}
 
             top_green_scale = StepColormap(
-                colors=["#a1d99b", "#74c476", "#41ab5d", "#238b45", "#005a32"],
-                index=[0, 1, 2, 3, 4],
+                colors=["#e5f5e0", "#c7e9c0", "#a1d99b", "#74c476", "#41ab5d",
+                        "#31a354", "#238b45", "#006d2c", "#00441b", "#002b13"],
+                index=list(range(10)),
                 vmin=0,
-                vmax=4
+                vmax=9
             )
 
-            bottom_orange_scale = StepColormap(
-                colors=["#fff7bc", "#fee391", "#fec44f", "#fe9929", "#d95f0e"],
-                index=[0, 1, 2, 3, 4],
-                vmin=0,
-                vmax=4
-            )
+            # Function to safely bind fill color
+            def make_style_function(color):
+                return lambda f: {
+                    "fillColor": color,
+                    "color": "black",
+                    "weight": 0.5,
+                    "fillOpacity": 0.6
+                }
 
             for feature in zip_geojson["features"]:
                 zip_code = feature["properties"]["ZCTA5CE20"]
 
-                if zip_code in top_codes:
+                if zip_code in top_10_zips:
                     row = df[df["zip_code"] == zip_code].iloc[0]
-
-                    # Gradient color assignment based on rank
-                    if zip_code in top_5_zips:
-                        rank = top_5_zips.index(zip_code)
-                        fill_color = top_green_scale(rank)
-                    elif zip_code in bottom_5_zips:
-                        rank = bottom_5_zips.index(zip_code)
-                        fill_color = bottom_orange_scale(rank)
-                    else:
-                        fill_color = "#d3d3d3"  # fallback for others (light gray)
+                    rank = zip_rank_map[zip_code]
+                    fill_color = top_green_scale(rank)
 
                     popup_html = (
                         f"<b>ZIP: {zip_code}</b><br>"
