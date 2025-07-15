@@ -328,13 +328,12 @@ if st.session_state.step1 and st.session_state.step2:
 
             zip_color_map = {zip_code: top_green_scale(rank) for zip_code, rank in zip_rank_map.items()}
 
-with st.expander("🧪 Diagnostic: ZIP Rank → Color Mapping", expanded=True):
-    st.markdown("This diagnostic panel shows ZIP codes mapped to their rank and assigned color for polygon fill.")
-    for zip_code in top_10_zips:
-        rank = zip_rank_map.get(zip_code, "❌ Missing")
-        color = zip_color_map.get(zip_code, "❌ Missing")
-        st.markdown(f"- **ZIP {zip_code}** → Rank: `{rank}` → Color: `{color}`")
-
+            with st.expander("🧪 Diagnostic: ZIP Rank → Color Mapping", expanded=True):
+                st.markdown("This diagnostic panel shows ZIP codes mapped to their rank and assigned color for polygon fill.")
+                for zip_code in top_10_zips:
+                    rank = zip_rank_map.get(zip_code, "❌ Missing")
+                    color = zip_color_map.get(zip_code, "❌ Missing")
+                    st.markdown(f"- **ZIP {zip_code}** → Rank: `{rank}` → Color: `{color}`")
 
             for feature in zip_geojson["features"]:
                 zip_code = feature["properties"]["ZCTA5CE20"]
