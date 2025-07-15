@@ -312,11 +312,11 @@ if st.session_state.step1 and st.session_state.step2:
             folium.Marker(user_location, tooltip="You are here", icon=folium.Icon(color="red")).add_to(m)
             #Mapping ZIP code polygons with popup info
 
-            top_zips_sorted = df.sort_values("score", ascending=False).head(10)
-            top_10_zips = top_zips_sorted.head(10)["zip_code"].tolist()
-            
-            zip_rank_map = {zip_code: rank for rank, zip_code in enumerate(top_10_zips)}
+            top_zips = st.session_state.top_zips
+            top_10_zips = top_zips["zip_code"].tolist()
 
+            # Re-map ranks explicitly from top_zips
+            zip_rank_map = {zip_code: rank for rank, zip_code in enumerate(top_10_zips)}
 
             top_green_scale = StepColormap(
                 colors=["#e5f5e0", "#c7e9c0", "#a1d99b", "#74c476", "#41ab5d",
@@ -328,11 +328,16 @@ if st.session_state.step1 and st.session_state.step2:
 
             zip_color_map = {zip_code: top_green_scale(rank) for zip_code, rank in zip_rank_map.items()}
 
+
             for feature in zip_geojson["features"]:
                 zip_code = feature["properties"]["ZCTA5CE20"]
 
                 if zip_code in top_10_zips:
-                    row = df[df["zip_code"] == zip_code].iloc[0]
+                    row_match = df[df["zip_code"] == zip_code]
+                    if row_match.empty:
+                        continue  # Skip if ZIP not in filtered DataFrame
+                    row = row_match.iloc[0]
+
                     rank = zip_rank_map[zip_code]
                     fill_color = top_green_scale(rank)
 
