@@ -18,6 +18,7 @@ import os
 import boto3
 from io import StringIO
 import json
+from branca.colormap import StepColormap
 
 # loading main dataset
 @st.cache_data
