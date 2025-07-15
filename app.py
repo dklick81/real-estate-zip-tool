@@ -232,21 +232,31 @@ if st.session_state.step1 and st.session_state.step2:
     if st.session_state.step3:
         df = st.session_state.df
         user_location = st.session_state.user_location
-        top_zips = st.session_state.top_zips
-
-        # Diagnostic panel shows after Step 3
+        
+        # Build diagnostic color map
         top_10_zips = top_zips["zip_code"].tolist()
         zip_rank_map = {z: i for i, z in enumerate(top_10_zips)}
         color_scale = StepColormap(
-            colors=["#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d",
-                    "#31a354","#238b45","#006d2c","#00441b","#002b13"],
-            index=list(range(10)), vmin=0, vmax=9
+            colors=[
+                "#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d",
+                "#31a354","#238b45","#006d2c","#00441b","#002b13"
+            ],
+            index=list(range(10)),
+            vmin=0,
+            vmax=9,
         )
+
+        # ❇️ Diagnostic panel
         with st.expander("🧪 Diagnostic: ZIP Rank → Color Mapping", expanded=True):
-            for zip_code in top_10_zips:
-                rank = zip_rank_map[zip_code]
-                col = color_scale(rank)
-                st.markdown(f"<span style='background:{col};padding:2px 6px;border:1px solid #000;'>{zip_code}</span> Rank {rank}", unsafe_allow_html=True)
+            st.markdown("This shows each top-10 ZIP mapped to its computed color.")
+            for z in top_10_zips:
+                r = zip_rank_map[z]
+                c = color_scale(r)
+                st.markdown(
+                    f"<span style='background:{c};padding:2px 6px;border:1px solid #000;'>"
+                    f"{z}</span> Rank `{r}`",
+                    unsafe_allow_html=True
+                )
 
         st.subheader("Top ZIP Codes")
         top_zips_clean = top_zips.reset_index(drop=True)
