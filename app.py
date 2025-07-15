@@ -17,13 +17,27 @@ from pathlib import Path
 import os
 import boto3
 from io import StringIO
+import json
 
+# loading main dataset
 @st.cache_data
 def load_data():
     aws = st.secrets["aws"]
     s3 = boto3.client("s3", aws_access_key_id=aws["aws_access_key_id"], aws_secret_access_key=aws["aws_secret_access_key"])
     obj = s3.get_object(Bucket=aws["staging_bucket"], Key="real_zip_scores.csv")
     return pd.read_csv(io.BytesIO(obj["Body"].read()), dtype={"zip_code": str})
+
+# loading ZIP code boundary data
+@st.cache_data
+def load_zip_geojson():
+    aws = st.secrets["aws"]
+    s3 = boto3.client("s3", aws_access_key_id=aws["aws_access_key_id"], aws_secret_access_key=aws["aws_secret_access_key"])
+    obj = s3.get_object(Bucket=aws["staging_bucket"], Key="zcta_filtered.geojson")
+    geojson_bytes = obj["Body"].read()
+    return json.loads(geojson_bytes)
+
+zip_geojson = load_zip_geojson()
+
 
 # Load data and initialize session state
 df = load_data()
@@ -295,24 +309,34 @@ if st.session_state.step1 and st.session_state.step2:
         with col1:
             m = folium.Map(location=user_location, zoom_start=11)
             folium.Marker(user_location, tooltip="You are here", icon=folium.Icon(color="red")).add_to(m)
-            for _, row in viz_df.iterrows():
-                folium.CircleMarker(
-                    location=[row["latitude"], row["longitude"]],
-                    radius=7,
-                    popup=(
-                        f"ZIP: {row['zip_code']}<br>"
- #                       f"Score: {round(row['score'], 2)}<br>"
+            #Mapping ZIP code polygons with popup info
+            for feature in zip_geojson["features"]:
+                zip_code = feature["properties"]["ZCTA5CE20"]
+
+                if zip_code in top_codes:
+                    row = df[df["zip_code"] == zip_code].iloc[0]
+
+                    popup_html = (
+                        f"<b>ZIP: {zip_code}</b><br>"
+                        f"Score: {round(row['score'], 2)}<br>"
                         f"Affordability: {round(row['affordability'], 2)}<br>"
                         f"Property Tax: {round(row['property_tax'], 2)}<br>"
-			f"Schools: {round(row['school_quality'], 2)}<br>"
+                        f"Schools: {round(row['school_quality'], 2)}<br>"
                         f"Crime: {round(row['crime_rate'], 2)}<br>"
                         f"Walkability: {round(row['walkability'], 2)}<br>"
                         f"Commute: {round(row['commute_time'], 2)}"
-                    ),
-                    color="blue",
-                    fill=True,
-                    fill_opacity=0.7
-                ).add_to(m)
+                    )
+
+                    folium.GeoJson(
+                        feature,
+                        style_function=lambda f: {
+                            "fillColor": "blue",
+                            "color": "black",
+                            "weight": 0.5,
+                            "fillOpacity": 0.5,
+                        },
+                        tooltip=folium.Tooltip(popup_html)
+                    ).add_to(m)
             st_folium(m, width=350, height=350)
 
         with col2:
