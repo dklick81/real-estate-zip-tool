@@ -234,6 +234,20 @@ if st.session_state.step1 and st.session_state.step2:
         user_location = st.session_state.user_location
         top_zips = st.session_state.top_zips
 
+        # Diagnostic panel shows after Step 3
+        top_10_zips = top_zips["zip_code"].tolist()
+        zip_rank_map = {z: i for i, z in enumerate(top_10_zips)}
+        color_scale = StepColormap(
+            colors=["#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d",
+                    "#31a354","#238b45","#006d2c","#00441b","#002b13"],
+            index=list(range(10)), vmin=0, vmax=9
+        )
+        with st.expander("🧪 Diagnostic: ZIP Rank → Color Mapping", expanded=True):
+            for zip_code in top_10_zips:
+                rank = zip_rank_map[zip_code]
+                col = color_scale(rank)
+                st.markdown(f"<span style='background:{col};padding:2px 6px;border:1px solid #000;'>{zip_code}</span> Rank {rank}", unsafe_allow_html=True)
+
         st.subheader("Top ZIP Codes")
         top_zips_clean = top_zips.reset_index(drop=True)
         st.dataframe(top_zips_clean,hide_index=True)
@@ -311,29 +325,6 @@ if st.session_state.step1 and st.session_state.step2:
             m = folium.Map(location=user_location, zoom_start=11)
             folium.Marker(user_location, tooltip="You are here", icon=folium.Icon(color="red")).add_to(m)
             #Mapping ZIP code polygons with popup info
-
-            top_zips = st.session_state.top_zips
-            top_10_zips = top_zips["zip_code"].tolist()
-
-            # Re-map ranks explicitly from top_zips
-            zip_rank_map = {zip_code: rank for rank, zip_code in enumerate(top_10_zips)}
-
-            top_green_scale = StepColormap(
-                colors=["#e5f5e0", "#c7e9c0", "#a1d99b", "#74c476", "#41ab5d",
-                        "#31a354", "#238b45", "#006d2c", "#00441b", "#002b13"],
-                index=list(range(10)),
-                vmin=0,
-                vmax=9
-            )
-
-            zip_color_map = {zip_code: top_green_scale(rank) for zip_code, rank in zip_rank_map.items()}
-
-            with st.expander("🧪 Diagnostic: ZIP Rank → Color Mapping", expanded=True):
-                st.markdown("This diagnostic panel shows ZIP codes mapped to their rank and assigned color for polygon fill.")
-                for zip_code in top_10_zips:
-                    rank = zip_rank_map.get(zip_code, "❌ Missing")
-                    color = zip_color_map.get(zip_code, "❌ Missing")
-                    st.markdown(f"- **ZIP {zip_code}** → Rank: `{rank}` → Color: `{color}`")
 
             for feature in zip_geojson["features"]:
                 zip_code = feature["properties"]["ZCTA5CE20"]
