@@ -311,7 +311,6 @@ if st.session_state.step1 and st.session_state.step2:
             m = folium.Map(location=user_location, zoom_start=11)
             folium.Marker(user_location, tooltip="You are here", icon=folium.Icon(color="red")).add_to(m)
             #Mapping ZIP code polygons with popup info
-            from branca.colormap import StepColormap
 
             top_zips_sorted = df.sort_values("score", ascending=False)
             top_5_zips = top_zips_sorted.head(5)["zip_code"].tolist()
@@ -360,12 +359,7 @@ if st.session_state.step1 and st.session_state.step2:
 
                     folium.GeoJson(
                         feature,
-                        style_function=lambda f, fc=fill_color: {
-                            "fillColor": fc,
-                            "color": "black",
-                            "weight": 0.5,
-                            "fillOpacity": 0.6
-                        },
+                        style_function=make_style_function(fill_color),
                         highlight_function=lambda f: {
                             "weight": 2,
                             "color": "orange",
@@ -374,6 +368,23 @@ if st.session_state.step1 and st.session_state.step2:
                         tooltip=folium.Tooltip(f"ZIP: {zip_code}"),
                         popup=folium.Popup(popup_html, max_width=350)
                     ).add_to(m)
+
+#                    folium.GeoJson(
+#                        feature,
+#                        style_function=lambda f, fc=fill_color: {
+#                            "fillColor": fc,
+#                            "color": "black",
+#                            "weight": 0.5,
+#                            "fillOpacity": 0.6
+#                        },
+#                        highlight_function=lambda f: {
+#                            "weight": 2,
+#                            "color": "orange",
+#                            "fillOpacity": 0.75
+#                        },
+#                        tooltip=folium.Tooltip(f"ZIP: {zip_code}"),
+#                        popup=folium.Popup(popup_html, max_width=350)
+#                    ).add_to(m)
 
 #            for feature in zip_geojson["features"]:
 #                zip_code = feature["properties"]["ZCTA5CE20"]
