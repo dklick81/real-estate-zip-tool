@@ -337,47 +337,41 @@ if st.session_state.step1 and st.session_state.step2:
             #Mapping ZIP code polygons with popup info
 
             for feature in zip_geojson["features"]:
-                zip_code = feature["properties"]["ZCTA5CE20"]
+                zc = feature["properties"]["ZCTA5CE20"]
 
-                if zip_code in top_10_zips:
-                    row_match = df[df["zip_code"] == zip_code]
-                    if row_match.empty:
-                        continue  # Skip if ZIP not in filtered DataFrame
-                    row = row_match.iloc[0]
+                if zc not in top_10_zips:
+                    continue
+                row = df[df["zip_code"] == zc].iloc[0]
+                rank = zip_rank_map[zc]
+                fc = color_scale(rank)
 
-                    rank = zip_rank_map[zip_code]
-                    fill_color = top_green_scale(rank)
+                popup_html = (
+                    f"<b>ZIP: {zip_code}</b><br>"
+                    f"Score: {round(row['score'], 2)}<br>"
+                    f"Affordability: {round(row['affordability'], 2)}<br>"
+                    f"Property Tax: {round(row['property_tax'], 2)}<br>"
+                    f"Schools: {round(row['school_quality'], 2)}<br>"
+                    f"Crime: {round(row['crime_rate'], 2)}<br>"
+                    f"Walkability: {round(row['walkability'], 2)}<br>"
+                    f"Commute: {round(row['commute_time'], 2)}"
+                )
 
-                    popup_html = (
-                        f"<b>ZIP: {zip_code}</b><br>"
-                        f"Score: {round(row['score'], 2)}<br>"
-                        f"Affordability: {round(row['affordability'], 2)}<br>"
-                        f"Property Tax: {round(row['property_tax'], 2)}<br>"
-                        f"Schools: {round(row['school_quality'], 2)}<br>"
-                        f"Crime: {round(row['crime_rate'], 2)}<br>"
-                        f"Walkability: {round(row['walkability'], 2)}<br>"
-                        f"Commute: {round(row['commute_time'], 2)}"
-                    )
-
-                    def make_style(zip_code):
-                        return lambda f: {
-                            "fillColor": zip_color_map.get(zip_code, "#d3d3d3"),
-                            "color": "black",
-                            "weight": 0.5,
-                            "fillOpacity": 0.6
-                        }
-
-                    folium.GeoJson(
-                        feature,
-                        style_function=make_style(zip_code),
-                        highlight_function=lambda f: {
-                            "weight": 2,
-                            "color": "orange",
-                            "fillOpacity": 0.75
-                        },
-                        tooltip=folium.Tooltip(f"ZIP: {zip_code}"),
-                        popup=folium.Popup(popup_html, max_width=350)
-                    ).add_to(m)
+                folium.GeoJson(
+                    feature,
+                    style_function=lambda f, fill=fc: {
+                        "fillColor": fill,
+                        "color":     "black",
+                        "weight":     0.5,
+                        "fillOpacity":0.6
+                    },
+                    highlight_function=lambda f: {
+                        "weight":     2,
+                        "color":     "orange",
+                        "fillOpacity":0.75
+                    },
+                    tooltip=folium.Tooltip(f"ZIP: {zc}"),
+                    popup=folium.Popup(popup_html, max_width=350)
+                ).add_to(m)
 
 
             st_folium(m, width=350, height=350)
