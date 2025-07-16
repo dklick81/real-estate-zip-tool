@@ -18,7 +18,6 @@ import os
 import boto3
 from io import StringIO
 import json
-from branca.colormap import StepColormap
 
 # loading main dataset
 @st.cache_data
@@ -232,31 +231,7 @@ if st.session_state.step1 and st.session_state.step2:
     if st.session_state.step3:
         df = st.session_state.df
         user_location = st.session_state.user_location
-        
-        # Build diagnostic color map
-        top_10_zips = top_zips["zip_code"].tolist()
-        zip_rank_map = {z: i for i, z in enumerate(top_10_zips)}
-        color_scale = StepColormap(
-            colors=[
-                "#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d",
-                "#31a354","#238b45","#006d2c","#00441b","#002b13"
-            ],
-            index=list(range(10)),
-            vmin=0,
-            vmax=9,
-        )
-
-        # ❇️ Diagnostic panel
-        with st.expander("🧪 Diagnostic: ZIP Rank → Color Mapping", expanded=True):
-            st.markdown("This shows each top-10 ZIP mapped to its computed color.")
-            for z in top_10_zips:
-                r = zip_rank_map[z]
-                c = color_scale(r)
-                st.markdown(
-                    f"<span style='background:{c};padding:2px 6px;border:1px solid #000;'>"
-                    f"{z}</span> Rank `{r}`",
-                    unsafe_allow_html=True
-                )
+        top_zips = st.session_state.top_zips
 
         st.subheader("Top ZIP Codes")
         top_zips_clean = top_zips.reset_index(drop=True)
@@ -335,45 +310,33 @@ if st.session_state.step1 and st.session_state.step2:
             m = folium.Map(location=user_location, zoom_start=11)
             folium.Marker(user_location, tooltip="You are here", icon=folium.Icon(color="red")).add_to(m)
             #Mapping ZIP code polygons with popup info
-
             for feature in zip_geojson["features"]:
-                zc = feature["properties"]["ZCTA5CE20"]
+                zip_code = feature["properties"]["ZCTA5CE20"]
 
-                if zc not in top_10_zips:
-                    continue
-                row = df[df["zip_code"] == zc].iloc[0]
-                rank = zip_rank_map[zc]
-                fc = color_scale(rank)
+                if zip_code in top_codes:
+                    row = df[df["zip_code"] == zip_code].iloc[0]
 
-                popup_html = (
-                    f"<b>ZIP: {zip_code}</b><br>"
-                    f"Score: {round(row['score'], 2)}<br>"
-                    f"Affordability: {round(row['affordability'], 2)}<br>"
-                    f"Property Tax: {round(row['property_tax'], 2)}<br>"
-                    f"Schools: {round(row['school_quality'], 2)}<br>"
-                    f"Crime: {round(row['crime_rate'], 2)}<br>"
-                    f"Walkability: {round(row['walkability'], 2)}<br>"
-                    f"Commute: {round(row['commute_time'], 2)}"
-                )
+                    popup_html = (
+                        f"<b>ZIP: {zip_code}</b><br>"
+                        f"Score: {round(row['score'], 2)}<br>"
+                        f"Affordability: {round(row['affordability'], 2)}<br>"
+                        f"Property Tax: {round(row['property_tax'], 2)}<br>"
+                        f"Schools: {round(row['school_quality'], 2)}<br>"
+                        f"Crime: {round(row['crime_rate'], 2)}<br>"
+                        f"Walkability: {round(row['walkability'], 2)}<br>"
+                        f"Commute: {round(row['commute_time'], 2)}"
+                    )
 
-                folium.GeoJson(
-                    feature,
-                    style_function=lambda f, fill=fc: {
-                        "fillColor": fill,
-                        "color":     "black",
-                        "weight":     0.5,
-                        "fillOpacity":0.6
-                    },
-                    highlight_function=lambda f: {
-                        "weight":     2,
-                        "color":     "orange",
-                        "fillOpacity":0.75
-                    },
-                    tooltip=folium.Tooltip(f"ZIP: {zc}"),
-                    popup=folium.Popup(popup_html, max_width=350)
-                ).add_to(m)
-
-
+                    folium.GeoJson(
+                        feature,
+                        style_function=lambda f: {
+                            "fillColor": "blue",
+                            "color": "black",
+                            "weight": 0.5,
+                            "fillOpacity": 0.5,
+                        },
+                        tooltip=folium.Tooltip(popup_html)
+                    ).add_to(m)
             st_folium(m, width=350, height=350)
 
         with col2:
